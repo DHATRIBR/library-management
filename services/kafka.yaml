@@ -1,69 +1,50 @@
-# Kafka Cluster (Strimzi)
-apiVersion: kafka.strimzi.io/v1beta2
-kind: Kafka
+apiVersion: v1
+kind: Service
 metadata:
-  name: notification
-  namespace: default
+  name: kafka-service
 spec:
-  kafka:
-    version: 3.5.0
-    replicas: 1
-    listeners:
-      - name: plain
-        port: 9092
-        type: internal
-        tls: false
-    storage:
-      type: ephemeral
-  zookeeper:
-    replicas: 1
-    storage:
-      type: ephemeral
-  entityOperator:
-    topicOperator: {}
-    userOperator: {}
-
+  ports:
+    - port: 9092
+  selector:
+    app: kafka
 ---
-
-# Kafka Topic: book.due_date_reminder
-apiVersion: kafka.strimzi.io/v1beta2
-kind: KafkaTopic
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: book-due-date-reminder
-  labels:
-    strimzi.io/cluster: notification
-  namespace: default
+  name: kafka
 spec:
-  partitions: 3
   replicas: 1
-  topicName: book.due_date_reminder
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      containers:
+        - name: kafka
+          image: bitnami/kafka:4.0
+          ports:
+            - containerPort: 9092
+            - containerPort: 9093  # Controller port
+          env:
+            # KRaft settings
+            - name: KAFKA_CFG_NODE_ID
+              value: "0"
+            - name: KAFKA_CFG_PROCESS_ROLES
+              value: "controller,broker"
+            - name: KAFKA_CFG_CONTROLLER_QUORUM_VOTERS
+              value: "0@localhost:9093"
 
----
-
-# Kafka Topic: book.overdue
-apiVersion: kafka.strimzi.io/v1beta2
-kind: KafkaTopic
-metadata:
-  name: book-overdue
-  labels:
-    strimzi.io/cluster: notification
-  namespace: default
-spec:
-  partitions: 3
-  replicas: 1
-  topicName: book.overdue
-
----
-
-# Kafka Topic: book.available_reserved
-apiVersion: kafka.strimzi.io/v1beta2
-kind: KafkaTopic
-metadata:
-  name: book-available-reserved
-  labels:
-    strimzi.io/cluster: notification
-  namespace: default
-spec:
-  partitions: 3
-  replicas: 1
-  topicName: book.available_reserved
+            # Listeners
+            - name: KAFKA_CFG_LISTENERS
+              value: "PLAINTEXT://:9092,CONTROLLER://:9093"
+            - name: KAFKA_CFG_ADVERTISED_LISTENERS
+              value: "PLAINTEXT://kafka-service:9092"
+            - name: KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP
+              value: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+            - name: KAFKA_CFG_CONTROLLER_LISTENER_NAMES
+              value: "CONTROLLER"
+            - name: KAFKA_CFG_INTER_BROKER_LISTENER_NAME
+              value: "PLAINTEXT"

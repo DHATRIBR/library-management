@@ -23,12 +23,22 @@ public class NotificationConsumer {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(value);
 
+            JsonNode userIdNode = node.get("userId");
+            JsonNode messageNode = node.get("message");
+
+            if (userIdNode == null || messageNode == null || userIdNode.isNull() || messageNode.isNull()) {
+                System.err.println("Invalid message received: missing userId or message. Payload: " + value);
+                return;
+            }
+
             Notification notification = new Notification();
-            notification.setUserId(node.get("userId").asLong());
-            notification.setMessage(node.get("message").asText());
+            notification.setUserId(userIdNode.asLong());
+            notification.setMessage(messageNode.asText());
+
             service.saveNotification(notification);
 
         } catch (Exception e) {
+            System.err.println("Failed to process message: " + record.value());
             e.printStackTrace();
         }
     }

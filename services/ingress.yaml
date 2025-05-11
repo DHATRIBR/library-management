@@ -35,6 +35,6 @@ spec:
         pathType: ImplementationSpecific
         backend:
           service:
-            name: notification-service
+            name: notification
             port:
               number: 8085

@@ -46,7 +46,7 @@ func BorrowBook(w http.ResponseWriter, r *http.Request) {
     }
     stmt, err := db.DB.Prepare("INSERT INTO borrowings (user_id, book_id, borrow_date) VALUES (?, ?, NOW())")
     if err != nil {
-        http.Error(w, "DB query preparation failed", http.StatusInternalServerError)
+        http.Error(w, fmt.Sprintf("DB query preparation failed: %v", err), http.StatusInternalServerError)
         return
     }
     defer stmt.Close()
@@ -96,7 +96,7 @@ func ReturnBook(w http.ResponseWriter, r *http.Request) {
 	req, _ := http.NewRequest("PUT", updateBookURL, jsonBody)
     httpClient.Do(req)
     // Publish event to Kafka
-    message := fmt.Sprintf(`{"bookId":"%s","status":"available"}`, request.UserID, request.BookID)
+    message := fmt.Sprintf(`{"bookId":"%s","userId":"%s","status":"available"}`, request.BookID, request.UserID)
     db.PublishEvent("book.available_reserved", message)
 
     w.WriteHeader(http.StatusOK)

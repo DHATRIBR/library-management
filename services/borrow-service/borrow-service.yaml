@@ -13,6 +13,23 @@ spec:
       labels:
         app: borrow-service
     spec:
+      initContainers:
+      - name: init-borrow-db
+        image: mysql:8.0
+        command:
+          - sh
+          - -c
+          - |
+            mysql -h borrow-db -P 3306 -u user -ppassword -e "
+              CREATE DATABASE IF NOT EXISTS borrow_service;
+              USE borrow_service;
+              CREATE TABLE IF NOT EXISTS borrowings (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id VARCHAR(36) NOT NULL,
+                book_id VARCHAR(36) NOT NULL,
+                borrow_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+              );
+            "
       containers:
       - name: borrow-service
         image: library/borrow-service:latest
@@ -21,11 +38,11 @@ spec:
         - containerPort: 8080
         env:
         - name: KAFKA_BROKER
-          value: "kafka-service.default.svc.cluster.local:9092"
+          value: "kafka-service.default.svc:9092"
         - name: KAFKA_USERNAME
-          value: "your-username"
+          value: ""
         - name: KAFKA_PASSWORD
-          value: "your-password"
+          value: ""
         - name: MYSQL_USER
           value: "user"
         - name: MYSQL_PASSWORD
@@ -50,4 +67,3 @@ spec:
       port: 8080
       targetPort: 8080
   type: ClusterIP
-
