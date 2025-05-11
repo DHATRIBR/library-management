@@ -20,7 +20,7 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "userId is required")
+//     @NotBlank(message = "userId is required")
     private Long userId;
 
     @NotBlank(message = "message is required")

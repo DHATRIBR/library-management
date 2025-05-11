@@ -96,7 +96,7 @@ func ReturnBook(w http.ResponseWriter, r *http.Request) {
 	req, _ := http.NewRequest("PUT", updateBookURL, jsonBody)
     httpClient.Do(req)
     // Publish event to Kafka
-    message := fmt.Sprintf(`{"bookId":"%s","userId":"%s","status":"available"}`, request.BookID, request.UserID)
+    message := fmt.Sprintf(`{"bookId":"%s","userId":"%s","message":"Book is available."}`, request.BookID, request.UserID)
     db.PublishEvent("book.available_reserved", message)
 
     w.WriteHeader(http.StatusOK)

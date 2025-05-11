@@ -85,6 +85,10 @@ apply_k8s_config "BookService Deployment" "book-service/book-service.yaml"
 apply_k8s_config "BorrowService MySQL" "borrow-service/mysql.yaml"
 apply_k8s_config "BorrowService Deployment" "borrow-service/borrow-service.yaml"
 
+# Borrow Service
+apply_k8s_config "User Management MySQL" "user-mgmt-service/mysql.yaml"
+apply_k8s_config "User Management Deployment" "user-mgmt-service/borrow-service.yaml"
+
 popd >/dev/null
 
 # Ingress
